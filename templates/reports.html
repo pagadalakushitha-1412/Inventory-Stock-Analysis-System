@@ -1,0 +1,136 @@
+
+{% extends "base.html" %}
+
+{% block title %}Reports · StockWise{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-3">
+    <div>
+        <h1 class="h2">Stock Analysis Report</h1>
+        <p class="text-secondary mb-0">
+            Movement totals, reorder status and estimated valuation.
+        </p>
+    </div>
+
+    <a class="btn btn-primary" href="{{ url_for('export') }}">
+        Export CSV
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="metric">
+            <span>Products</span>
+            <strong>{{ summary.product_count }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="metric">
+            <span>Total Units</span>
+            <strong>{{ summary.total_units }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="metric">
+            <span>Estimated Value</span>
+            <strong>₹{{ "%.2f"|format(summary.total_value) }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="metric">
+            <span>Low Stock</span>
+            <strong>{{ summary.low_count }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="panel table-responsive mb-4">
+
+    <h2 class="h5 mb-3">Product Stock Details</h2>
+
+    <table class="table align-middle">
+
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Product</th>
+                <th>Opening Stock</th>
+                <th>Stock In</th>
+                <th>Stock Out</th>
+                <th>Current Stock</th>
+                <th>Reorder Level</th>
+                <th>Unit Price</th>
+                <th>Estimated Value</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for r in rows %}
+            <tr>
+                <td>{{ r["Product ID"] }}</td>
+                <td>{{ r["Product"] }}</td>
+                <td>{{ r["Opening stock"] }}</td>
+                <td>{{ r["Stock in"] }}</td>
+                <td>{{ r["Stock out"] }}</td>
+                <td>{{ r["Current stock"] }}</td>
+                <td>{{ r["Reorder level"] }}</td>
+                <td>₹{{ "%.2f"|format(r["Unit price"]) }}</td>
+                <td>₹{{ "%.2f"|format(r["Estimated value"]) }}</td>
+
+                <td>
+                    {% if r["Status"] == "LOW STOCK" %}
+                        <span class="badge text-bg-danger">Low Stock</span>
+                    {% else %}
+                        <span class="badge text-bg-success">OK</span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="10" class="text-center">
+                    No data available.
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<div class="panel">
+
+    <h2 class="h5">Fast-Moving Products</h2>
+
+    <p class="small text-secondary">
+        Ranked by total recorded stock-out quantity.
+    </p>
+
+    <ol>
+        {% for r in summary.fast_movers %}
+        <li>
+            {{ r["Product"] }} — {{ r["Stock out"] }} units issued
+        </li>
+        {% else %}
+        <li>No movement data yet.</li>
+        {% endfor %}
+    </ol>
+
+    <p class="mb-0">
+        <strong>Formula:</strong>
+        Current stock = Opening stock + Stock in − Stock out.
+    </p>
+
+</div>
+
+{% endblock %}
